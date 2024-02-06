@@ -1,5 +1,6 @@
 import hashlib
 import os
+import math
 
 def hash_collision(k):
     if not isinstance(k,int):
@@ -12,7 +13,10 @@ def hash_collision(k):
     # Initialize dictionary to store hashes
     hash_dict = {}
 
-    while True:
+    # Calculate the number of attempts for a 50% collision probability
+    attempts = int(math.sqrt(2 ** k))
+
+    for _ in range(attempts):
         # Generate a random string
         x = os.urandom(20)
         # Compute its hash
@@ -28,3 +32,6 @@ def hash_collision(k):
 
         # Otherwise, add it to the dictionary
         hash_dict[x_hash_last_k] = x
+
+    print("No collision found. Try increasing the number of attempts.")
+    return b'\x00', b'\x00'
