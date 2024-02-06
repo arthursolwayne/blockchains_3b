@@ -9,32 +9,22 @@ def hash_collision(k):
         print("Specify a positive number of bits")
         return(b'\x00',b'\x00')
 
-    # Define the hash function
-    def H(s):
-        return hashlib.sha256(s).hexdigest()[-k:]
+    # Initialize dictionary to store hashes
+    hash_dict = {}
 
-    # Initialize x and y
-    x = os.urandom(20)
-    y = H(x)
+    while True:
+        # Generate a random string
+        x = os.urandom(20)
+        # Compute its hash
+        x_hash = hashlib.sha256(x).hexdigest()
 
-    # Main loop
-    while H(x) != H(y):
-        x = H(x)
-        y = H(H(y))
+        # Get the last k bits of the hash
+        x_hash_last_k = x_hash[-k:]
 
-    # Find the position μ of first repetition
-    mu = 0
-    x = os.urandom(20)
-    while x != y:
-        x = H(x)
-        y = H(y)
-        mu += 1
+        # If the last k bits of the hash is already in the dictionary,
+        # we have found a collision
+        if x_hash_last_k in hash_dict:
+            return x, hash_dict[x_hash_last_k]
 
-    # Find the length λ of the shortest cycle starting from x
-    lambda_ = 1
-    y = H(x)
-    while x != y:
-        y = H(y)
-        lambda_ += 1
-
-    return mu, lambda_
+        # Otherwise, add it to the dictionary
+        hash_dict[x_hash_last_k] = x
