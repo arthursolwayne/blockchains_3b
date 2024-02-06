@@ -2,29 +2,29 @@ import hashlib
 import os
 
 def hash_collision(k):
-    if not isinstance(k,int):
+    # Validate input
+    if not isinstance(k, int):
         print("hash_collision expects an integer")
-        return(b'\x00',b'\x00')
-    if k < 0:
+        return (b'\x00', b'\x00')
+    if k <= 0:
         print("Specify a positive number of bits")
-        return(b'\x00',b'\x00')
+        return (b'\x00', b'\x00')
 
-    # Initialize dictionary to store hashes
-    hash_dict = {}
+    # Initialize variables
+    found = False
+    while not found:
+        # Generate two random byte strings
+        x = os.urandom(16)  # You can adjust the size as needed
+        y = os.urandom(16)
 
-    while True:
-        # Generate a random string
-        x = os.urandom(20)
-        # Compute its hash
-        x_hash = hashlib.sha256(x).hexdigest()
+        # Compute SHA256 hashes
+        hash_x = hashlib.sha256(x).digest()
+        hash_y = hashlib.sha256(y).digest()
 
-        # Get the last k bits of the hash
-        x_hash_last_k = x_hash[-k:]
+        # Convert the last k bits of both hashes into integers for easy comparison
+        # Note: We're comparing bits, not hexadecimal characters, so we adjust the calculation accordingly
+        bit_mask = (1 << k) - 1  # Generates a bitmask to isolate the last k bits
+        if (int.from_bytes(hash_x, byteorder='big') & bit_mask) == (int.from_bytes(hash_y, byteorder='big') & bit_mask):
+            found = True
 
-        # If the last k bits of the hash is already in the dictionary,
-        # we have found a collision
-        if x_hash_last_k in hash_dict:
-            return x, hash_dict[x_hash_last_k]
-
-        # Otherwise, add it to the dictionary
-        hash_dict[x_hash_last_k] = x
+    return (x, y)
