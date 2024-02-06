@@ -1,6 +1,5 @@
 import hashlib
 import os
-import math
 
 def hash_collision(k):
     if not isinstance(k,int):
@@ -10,28 +9,32 @@ def hash_collision(k):
         print("Specify a positive number of bits")
         return(b'\x00',b'\x00')
 
-    # Initialize dictionary to store hashes
-    hash_dict = {}
+    # Define the hash function
+    def H(s):
+        return hashlib.sha256(s).hexdigest()[-k:]
 
-    # Calculate the number of attempts for a 50% collision probability
-    attempts = int(math.sqrt(2 ** k))
+    # Initialize x and y
+    x = os.urandom(20)
+    y = H(x)
 
-    for _ in range(attempts):
-        # Generate a random string
-        x = os.urandom(20)
-        # Compute its hash
-        x_hash = hashlib.sha256(x).hexdigest()
+    # Main loop
+    while H(x) != H(y):
+        x = H(x)
+        y = H(H(y))
 
-        # Get the last k bits of the hash
-        x_hash_last_k = x_hash[-k:]
+    # Find the position μ of first repetition
+    mu = 0
+    x = os.urandom(20)
+    while x != y:
+        x = H(x)
+        y = H(y)
+        mu += 1
 
-        # If the last k bits of the hash is already in the dictionary,
-        # we have found a collision
-        if x_hash_last_k in hash_dict:
-            return x, hash_dict[x_hash_last_k]
+    # Find the length λ of the shortest cycle starting from x
+    lambda_ = 1
+    y = H(x)
+    while x != y:
+        y = H(y)
+        lambda_ += 1
 
-        # Otherwise, add it to the dictionary
-        hash_dict[x_hash_last_k] = x
-
-    print("No collision found. Try increasing the number of attempts.")
-    return b'\x00', b'\x00'
+    return mu, lambda_
